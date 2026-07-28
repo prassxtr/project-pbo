@@ -1,9 +1,6 @@
 # ============================================================
 # view.py - Lapisan Antarmuka (View)
 # SIAKAD Mini - Sistem Informasi Akademik
-# Tugas: HANYA berisi komponen visual Tkinter
-# DILARANG berisi sqlite3 atau logika bisnis
-# Menerapkan INHERITANCE: semua frame mewarisi BaseFrame
 # ============================================================
 
 import tkinter as tk
@@ -11,19 +8,19 @@ from tkinter import ttk, messagebox
 
 
 # ============================================================
-# KONSTANTA TEMA (DRY: satu tempat untuk semua warna/font)
+# TEMA (MERAH MAROON)
 # ============================================================
 class Tema:
-    BG_DARK = "#1a1a2e"
-    BG_SIDEBAR = "#16213e"
+    BG_DARK = "#2d0a0a"
+    BG_SIDEBAR = "#3d0c0c"
     BG_MAIN = "#f8f9fa"
     BG_CARD = "#ffffff"
-    ACCENT = "#0f3460"
-    ACCENT_LIGHT = "#533483"
+    ACCENT = "#8b0000"
+    ACCENT_LIGHT = "#a52a2a"
     SUCCESS = "#27ae60"
     WARNING = "#f39c12"
-    DANGER = "#e74c3c"
-    INFO = "#3498db"
+    DANGER = "#c0392b"
+    INFO = "#8b0000"
     TEXT_DARK = "#2c3e50"
     TEXT_LIGHT = "#ecf0f1"
     TEXT_MUTED = "#7f8c8d"
@@ -36,10 +33,74 @@ class Tema:
 
 
 # ============================================================
-# BASE FRAME (INHERITANCE: parent class untuk semua halaman)
+# LOGIN FRAME
+# ============================================================
+class LoginFrame(tk.Frame):
+    """Frame untuk login user."""
+
+    def __init__(self, parent, controller):
+        super().__init__(parent, bg=Tema.BG_DARK)
+        self.controller = controller
+
+        container = tk.Frame(self, bg=Tema.BG_CARD, padx=50, pady=50)
+        container.place(relx=0.5, rely=0.5, anchor="center", width=420)
+
+        tk.Label(container, text="🎓", font=("Segoe UI", 56),
+                 bg=Tema.BG_CARD).pack(pady=(0, 10))
+        tk.Label(container, text="SIAKAD Mini",
+                 font=("Segoe UI", 26, "bold"),
+                 bg=Tema.BG_CARD, fg=Tema.ACCENT).pack(pady=(0, 5))
+        tk.Label(container, text="Sistem Informasi Akademik",
+                 font=Tema.FONT_SMALL,
+                 bg=Tema.BG_CARD, fg=Tema.TEXT_MUTED).pack(pady=(0, 30))
+
+        form_frame = tk.Frame(container, bg=Tema.BG_CARD)
+        form_frame.pack(fill=tk.X)
+
+        tk.Label(form_frame, text="Username", font=Tema.FONT_BODY,
+                 bg=Tema.BG_CARD, fg=Tema.TEXT_DARK, anchor="w").pack(fill=tk.X, pady=(0, 5))
+        self.ent_username = tk.Entry(form_frame, font=Tema.FONT_BODY,
+                                      relief="solid", bd=1)
+        self.ent_username.pack(fill=tk.X, pady=(0, 15))
+        self.ent_username.bind("<Return>", lambda e: self._do_login())
+
+        tk.Label(form_frame, text="Password", font=Tema.FONT_BODY,
+                 bg=Tema.BG_CARD, fg=Tema.TEXT_DARK, anchor="w").pack(fill=tk.X, pady=(0, 5))
+        self.ent_password = tk.Entry(form_frame, font=Tema.FONT_BODY,
+                                      show="•", relief="solid", bd=1)
+        self.ent_password.pack(fill=tk.X, pady=(0, 20))
+        self.ent_password.bind("<Return>", lambda e: self._do_login())
+
+        btn_login = tk.Button(form_frame, text="🔐 Login", font=Tema.FONT_BUTTON,
+                              bg=Tema.ACCENT, fg="white", relief="flat",
+                              cursor="hand2", padx=20, pady=12,
+                              command=self._do_login)
+        btn_login.pack(fill=tk.X)
+        btn_login.bind("<Enter>", lambda e: btn_login.config(bg=Tema.ACCENT_LIGHT))
+        btn_login.bind("<Leave>", lambda e: btn_login.config(bg=Tema.ACCENT))
+
+        tk.Label(container, text="\nDefault Login:\nUsername: admin | Password: admin123",
+                 font=("Segoe UI", 8),
+                 bg=Tema.BG_CARD, fg=Tema.TEXT_MUTED).pack(pady=(20, 0))
+
+        tk.Label(self, text="© 2025 SIAKAD Mini - PBO Project",
+                 font=("Segoe UI", 9),
+                 bg=Tema.BG_DARK, fg=Tema.TEXT_MUTED).place(relx=0.5, rely=0.95, anchor="center")
+
+    def _do_login(self):
+        self.controller.proses_login(self.ent_username.get(), self.ent_password.get())
+
+    def clear_form(self):
+        self.ent_username.delete(0, tk.END)
+        self.ent_password.delete(0, tk.END)
+        self.ent_username.focus()
+
+
+# ============================================================
+# BASE FRAME (INHERITANCE)
 # ============================================================
 class BaseFrame(tk.Frame):
-    """Kelas dasar semua halaman. Menerapkan Inheritance."""
+    """Kelas dasar semua halaman."""
 
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -47,66 +108,39 @@ class BaseFrame(tk.Frame):
         self.configure(bg=Tema.BG_MAIN)
 
     def buat_header(self, judul, subjudul=""):
-        """Header halaman dengan gradient-style (DRY)."""
         header = tk.Frame(self, bg=Tema.ACCENT, pady=18, padx=25)
         header.pack(fill=tk.X)
-
         tk.Label(header, text=judul, font=Tema.FONT_TITLE,
                  bg=Tema.ACCENT, fg=Tema.TEXT_LIGHT).pack(anchor="w")
         if subjudul:
             tk.Label(header, text=subjudul, font=Tema.FONT_SMALL,
-                     bg=Tema.ACCENT, fg="#a8d8ea").pack(anchor="w", pady=(4, 0))
+                     bg=Tema.ACCENT, fg="#f5c6cb").pack(anchor="w", pady=(4, 0))
 
     def buat_card(self, parent_frame, title=""):
-        """Membuat card container dengan shadow effect (REVISI - konsisten grid)."""
         outer = tk.Frame(parent_frame, bg=Tema.BORDER, padx=1, pady=1)
         outer.pack(fill=tk.X, padx=25, pady=(15, 5))
-
         card = tk.Frame(outer, bg=Tema.BG_CARD, padx=20, pady=15)
         card.pack(fill=tk.X)
-        
-        # Setup grid configuration untuk card
         card.grid_columnconfigure(1, weight=1)
-
         if title:
-            # Gunakan grid untuk title juga agar konsisten
             tk.Label(card, text=title, font=("Segoe UI", 11, "bold"),
-                    bg=Tema.BG_CARD, fg=Tema.ACCENT).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
-            # Return card dengan row offset sudah di-set
-            card._current_row = 2
-        else:
-            card._current_row = 0
-
+                     bg=Tema.BG_CARD, fg=Tema.ACCENT).grid(row=0, column=0,
+                     columnspan=2, sticky="w", pady=(0, 10))
         return card
 
     def buat_tombol(self, parent_frame, teks, warna, command):
-        """Tombol berwarna konsisten (DRY + POLYMORPHISM)."""
-        btn = tk.Button(
-            parent_frame, text=teks, font=Tema.FONT_BUTTON,
-            bg=warna, fg="white", activebackground=warna,
-            activeforeground="white", relief="flat", cursor="hand2",
-            padx=14, pady=6, command=command
-        )
+        btn = tk.Button(parent_frame, text=teks, font=Tema.FONT_BUTTON,
+                        bg=warna, fg="white", relief="flat", cursor="hand2",
+                        padx=14, pady=6, command=command)
         btn.pack(side=tk.LEFT, padx=4)
-        # Hover effect
-        btn.bind("<Enter>", lambda e, b=btn, c=warna: b.config(bg=self._darken(c)))
-        btn.bind("<Leave>", lambda e, b=btn, c=warna: b.config(bg=c))
         return btn
 
-    def _darken(self, hex_color):
-        """Gelapkan warna untuk hover effect."""
-        hex_color = hex_color.lstrip("#")
-        r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
-        r, g, b = max(0, r - 30), max(0, g - 30), max(0, b - 30)
-        return f"#{r:02x}{g:02x}{b:02x}"
-
     def buat_entry(self, parent_frame, label_text, row, default=""):
-        """Entry field dengan label (auto-increment row)."""
         tk.Label(parent_frame, text=label_text, font=Tema.FONT_SMALL,
-                bg=Tema.BG_CARD, fg=Tema.TEXT_DARK, width=14, anchor="w"
-                ).grid(row=row, column=0, padx=(0, 10), pady=6, sticky="w")
+                 bg=Tema.BG_CARD, fg=Tema.TEXT_DARK, width=14, anchor="w"
+                 ).grid(row=row, column=0, padx=(0, 10), pady=6, sticky="w")
         ent = tk.Entry(parent_frame, font=Tema.FONT_BODY, width=32,
-                relief="solid", bd=1)
+                       relief="solid", bd=1)
         ent.grid(row=row, column=1, padx=5, pady=6, sticky="ew")
         if default:
             ent.insert(0, default)
@@ -114,445 +148,385 @@ class BaseFrame(tk.Frame):
 
 
 # ============================================================
-# HALAMAN DASHBOARD
+# DASHBOARD
 # ============================================================
 class DashboardFrame(BaseFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        self.buat_header("📊  Dashboard", "Sistem Informasi Akademik Mini")
+        self.buat_header(" Dashboard", "Sistem Informasi Akademik Mini")
 
-        # Container untuk 3 kartu statistik
         self.frame_cards = tk.Frame(self, bg=Tema.BG_MAIN)
         self.frame_cards.pack(fill=tk.X, padx=25, pady=25)
         self.frame_cards.grid_columnconfigure((0, 1, 2), weight=1)
 
-        self.card_mhs = self._buat_stat_card(self.frame_cards, 0, "👥", "Mahasiswa", Tema.INFO)
+        self.card_mhs = self._buat_stat_card(self.frame_cards, 0, "👥", "Mahasiswa", Tema.ACCENT)
         self.card_mk = self._buat_stat_card(self.frame_cards, 1, "📚", "Mata Kuliah", Tema.ACCENT_LIGHT)
         self.card_krs = self._buat_stat_card(self.frame_cards, 2, "📝", "Entri KRS", Tema.SUCCESS)
 
-        # Welcome text
-        welcome_frame = tk.Frame(self, bg=Tema.BG_MAIN)
-        welcome_frame.pack(fill=tk.BOTH, expand=True, padx=25, pady=10)
-
-        tk.Label(welcome_frame,
-                 text="Selamat datang di SIAKAD Mini!\n"
-                      "Gunakan menu 'Navigasi' di atas untuk mengelola data.",
-                 font=Tema.FONT_SUBTITLE, bg=Tema.BG_MAIN,
-                 fg=Tema.TEXT_MUTED, justify="center").pack(pady=30)
-
     def _buat_stat_card(self, parent, col, icon, label, warna):
-        """Membuat satu kartu statistik."""
         outer = tk.Frame(parent, bg=Tema.BORDER, padx=1, pady=1)
         outer.grid(row=0, column=col, padx=8, pady=5, sticky="nsew")
-
         card = tk.Frame(outer, bg=Tema.BG_CARD, padx=20, pady=20)
         card.pack(fill=tk.BOTH, expand=True)
-
-        tk.Label(card, text=icon, font=("Segoe UI", 32),
-                 bg=Tema.BG_CARD).pack()
-        lbl_count = tk.Label(card, text="0", font=("Segoe UI", 28, "bold"),
-                             bg=Tema.BG_CARD, fg=warna)
-        lbl_count.pack(pady=(5, 2))
+        tk.Label(card, text=icon, font=("Segoe UI", 32), bg=Tema.BG_CARD).pack()
+        lbl = tk.Label(card, text="0", font=("Segoe UI", 28, "bold"),
+                       bg=Tema.BG_CARD, fg=warna)
+        lbl.pack(pady=(5, 2))
         tk.Label(card, text=label, font=Tema.FONT_SMALL,
                  bg=Tema.BG_CARD, fg=Tema.TEXT_MUTED).pack()
-        return lbl_count
+        return lbl
 
-    def perbarui_statistik(self, jml_mhs, jml_mk, jml_krs):
-        self.card_mhs.config(text=str(jml_mhs))
-        self.card_mk.config(text=str(jml_mk))
-        self.card_krs.config(text=str(jml_krs))
+    def perbarui_statistik(self, mhs, mk, krs):
+        self.card_mhs.config(text=str(mhs))
+        self.card_mk.config(text=str(mk))
+        self.card_krs.config(text=str(krs))
 
 
 # ============================================================
-# HALAMAN MAHASISWA (CRUD)
+# MAHASISWA
 # ============================================================
 class MahasiswaFrame(BaseFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        self.buat_header("👥  Data Mahasiswa", "Kelola data mahasiswa aktif")
+        self.buat_header("👥 Data Mahasiswa", "Kelola data mahasiswa")
         self.__editing_nim = None
 
-        # Form Card
         card = self.buat_card(self, "Form Input")
-        card.grid_columnconfigure(1, weight=1)
-
         self.ent_nim = self.buat_entry(card, "NIM", 0)
-        self.ent_nama = self.buat_entry(card, "Nama Lengkap", 1)
+        self.ent_nama = self.buat_entry(card, "Nama", 1)
         self.ent_jurusan = self.buat_entry(card, "Jurusan", 2)
         self.ent_angkatan = self.buat_entry(card, "Angkatan", 3)
 
-        # Tombol
         frm_btn = tk.Frame(card, bg=Tema.BG_CARD)
         frm_btn.grid(row=4, column=0, columnspan=2, pady=(15, 0))
-        self.buat_tombol(frm_btn, "💾  Simpan", Tema.SUCCESS, self._aksi_simpan)
-        self.buat_tombol(frm_btn, "✏️  Update", Tema.INFO, self._aksi_update)
-        self.buat_tombol(frm_btn, "🗑️  Hapus", Tema.DANGER, self._aksi_hapus)
-        self.buat_tombol(frm_btn, "🔄  Reset", Tema.TEXT_MUTED, self._aksi_reset)
-
-        # Tabel
+        self.buat_tombol(frm_btn, "💾 Simpan", Tema.SUCCESS, self._simpan)
+        self.buat_tombol(frm_btn, "✏️ Update", Tema.ACCENT, self._update)
+        self.buat_tombol(frm_btn, "🗑️ Hapus", Tema.DANGER, self._hapus)
+        self.buat_tombol(frm_btn, "🔄 Reset", Tema.TEXT_MUTED, self._reset)
         self._buat_tabel()
 
     def _buat_tabel(self):
-        frm_tree = tk.Frame(self, bg=Tema.BG_MAIN)
-        frm_tree.pack(fill=tk.BOTH, expand=True, padx=25, pady=(10, 15))
-
-        style = ttk.Style()
-        style.theme_use("clam")
-        style.configure("Treeview", font=Tema.FONT_SMALL, rowheight=30,
-                        background=Tema.BG_CARD, fieldbackground=Tema.BG_CARD)
-        style.configure("Treeview.Heading", font=("Segoe UI", 10, "bold"),
-                        background=Tema.ACCENT, foreground="white")
-        style.map("Treeview", background=[("selected", Tema.INFO)])
-
-        self.tree = ttk.Treeview(frm_tree,
-                                columns=("nim", "nama", "jurusan", "angkatan"),
-                                show="headings", height=8)
-        for col, w, anc in [("nim", 110, "w"), ("nama", 220, "w"),
-                            ("jurusan", 160, "w"), ("angkatan", 90, "center")]:
+        frm = tk.Frame(self, bg=Tema.BG_MAIN)
+        frm.pack(fill=tk.BOTH, expand=True, padx=25, pady=10)
+        self.tree = ttk.Treeview(frm, columns=("nim", "nama", "jurusan", "angkatan"),
+                                  show="headings", height=8)
+        for col, w in [("nim", 100), ("nama", 200), ("jurusan", 150), ("angkatan", 80)]:
             self.tree.heading(col, text=col.upper())
-            self.tree.column(col, width=w, anchor=anc)
-
-        scrollbar = ttk.Scrollbar(frm_tree, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar.set)
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            self.tree.column(col, width=w)
+        self.tree.pack(fill=tk.BOTH, expand=True)
         self.tree.bind("<<TreeviewSelect>>", self._on_select)
 
-    def _aksi_simpan(self):
+    def _simpan(self):
         try:
-            self.controller.simpan_mahasiswa(
-                nim=self.ent_nim.get(),
-                nama=self.ent_nama.get(),
-                jurusan=self.ent_jurusan.get(),
-                angkatan=self.ent_angkatan.get()
-            )
-            self._aksi_reset()
+            self.controller.simpan_mahasiswa(self.ent_nim.get(), self.ent_nama.get(),
+                                              self.ent_jurusan.get(), self.ent_angkatan.get())
+            self._reset()
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
-    def _aksi_update(self):
+    def _update(self):
         if not self.__editing_nim:
-            messagebox.showwarning("Peringatan", "Pilih data di tabel terlebih dahulu!")
-            return
+            messagebox.showwarning("Peringatan", "Pilih data dulu!"); return
         try:
-            self.controller.perbarui_mahasiswa(
-                nim_lama=self.__editing_nim,
-                nim=self.ent_nim.get(),
-                nama=self.ent_nama.get(),
-                jurusan=self.ent_jurusan.get(),
-                angkatan=self.ent_angkatan.get()
-            )
-            self._aksi_reset()
+            self.controller.perbarui_mahasiswa(self.__editing_nim, self.ent_nim.get(),
+                                                self.ent_nama.get(), self.ent_jurusan.get(),
+                                                self.ent_angkatan.get())
+            self._reset()
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
-    def _aksi_hapus(self):
+    def _hapus(self):
         sel = self.tree.selection()
-        if not sel:
-            messagebox.showwarning("Peringatan", "Pilih data yang akan dihapus!")
-            return
+        if not sel: return
         nim = self.tree.item(sel[0])["values"][0]
-        if messagebox.askyesno("Konfirmasi Hapus", f"Hapus mahasiswa NIM {nim}?\n(Semua data KRS terkait juga akan dihapus)"):
+        if messagebox.askyesno("Konfirmasi", f"Hapus NIM {nim}?"):
             self.controller.hapus_mahasiswa(nim)
 
-    def _aksi_reset(self):
-        self.ent_nim.config(state="normal")
+    def _reset(self):
         for ent in [self.ent_nim, self.ent_nama, self.ent_jurusan, self.ent_angkatan]:
             ent.delete(0, tk.END)
+        self.ent_nim.config(state="normal")
         self.__editing_nim = None
-        for sel in self.tree.selection():
-            self.tree.selection_remove(sel)
 
     def _on_select(self, event):
         sel = self.tree.selection()
-        if not sel:
-            return
+        if not sel: return
         vals = self.tree.item(sel[0])["values"]
         self.ent_nim.config(state="normal")
-        self.ent_nim.delete(0, tk.END)
-        self.ent_nim.insert(0, vals[0])
+        self.ent_nim.delete(0, tk.END); self.ent_nim.insert(0, vals[0])
         self.ent_nim.config(state="disabled")
-        self.ent_nama.delete(0, tk.END)
-        self.ent_nama.insert(0, vals[1])
-        self.ent_jurusan.delete(0, tk.END)
-        self.ent_jurusan.insert(0, vals[2])
-        self.ent_angkatan.delete(0, tk.END)
-        self.ent_angkatan.insert(0, vals[3])
+        self.ent_nama.delete(0, tk.END); self.ent_nama.insert(0, vals[1])
+        self.ent_jurusan.delete(0, tk.END); self.ent_jurusan.insert(0, vals[2])
+        self.ent_angkatan.delete(0, tk.END); self.ent_angkatan.insert(0, vals[3])
         self.__editing_nim = vals[0]
 
     def muat_data(self, data):
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-        for row in data:
-            self.tree.insert("", tk.END, values=tuple(row))
+        for row in self.tree.get_children(): self.tree.delete(row)
+        for row in data: self.tree.insert("", tk.END, values=tuple(row))
 
 
 # ============================================================
-# HALAMAN MATA KULIAH (CRUD)
+# MATA KULIAH
 # ============================================================
 class MataKuliahFrame(BaseFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        self.buat_header("📚  Data Mata Kuliah", "Kelola katalog mata kuliah")
+        self.buat_header("📚 Mata Kuliah", "Kelola mata kuliah")
         self.__editing_kode = None
 
         card = self.buat_card(self, "Form Input")
-        card.grid_columnconfigure(1, weight=1)
-
         self.ent_kode = self.buat_entry(card, "Kode MK", 0)
         self.ent_nama = self.buat_entry(card, "Nama MK", 1)
-        self.ent_sks = self.buat_entry(card, "SKS (1-6)", 2)
-        self.ent_semester = self.buat_entry(card, "Semester (1-8)", 3)
+        self.ent_sks = self.buat_entry(card, "SKS", 2)
+        self.ent_semester = self.buat_entry(card, "Semester", 3)
 
         frm_btn = tk.Frame(card, bg=Tema.BG_CARD)
         frm_btn.grid(row=4, column=0, columnspan=2, pady=(15, 0))
-        self.buat_tombol(frm_btn, "💾  Simpan", Tema.SUCCESS, self._aksi_simpan)
-        self.buat_tombol(frm_btn, "✏️  Update", Tema.INFO, self._aksi_update)
-        self.buat_tombol(frm_btn, "🗑️  Hapus", Tema.DANGER, self._aksi_hapus)
-        self.buat_tombol(frm_btn, "🔄  Reset", Tema.TEXT_MUTED, self._aksi_reset)
-
+        self.buat_tombol(frm_btn, "💾 Simpan", Tema.SUCCESS, self._simpan)
+        self.buat_tombol(frm_btn, "✏️ Update", Tema.ACCENT, self._update)
+        self.buat_tombol(frm_btn, "🗑️ Hapus", Tema.DANGER, self._hapus)
+        self.buat_tombol(frm_btn, "🔄 Reset", Tema.TEXT_MUTED, self._reset)
         self._buat_tabel()
 
     def _buat_tabel(self):
-        frm_tree = tk.Frame(self, bg=Tema.BG_MAIN)
-        frm_tree.pack(fill=tk.BOTH, expand=True, padx=25, pady=(10, 15))
-
-        self.tree = ttk.Treeview(frm_tree,
-                                  columns=("kode_mk", "nama_mk", "sks", "semester"),
+        frm = tk.Frame(self, bg=Tema.BG_MAIN)
+        frm.pack(fill=tk.BOTH, expand=True, padx=25, pady=10)
+        self.tree = ttk.Treeview(frm, columns=("kode_mk", "nama_mk", "sks", "semester"),
                                   show="headings", height=8)
-        for col, w, anc in [("kode_mk", 100, "w"), ("nama_mk", 280, "w"),
-                             ("sks", 70, "center"), ("semester", 100, "center")]:
+        for col, w in [("kode_mk", 100), ("nama_mk", 250), ("sks", 50), ("semester", 80)]:
             self.tree.heading(col, text=col.upper())
-            self.tree.column(col, width=w, anchor=anc)
-
-        scrollbar = ttk.Scrollbar(frm_tree, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar.set)
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            self.tree.column(col, width=w)
+        self.tree.pack(fill=tk.BOTH, expand=True)
         self.tree.bind("<<TreeviewSelect>>", self._on_select)
 
-    def _aksi_simpan(self):
+    def _simpan(self):
         try:
-            self.controller.simpan_mata_kuliah(
-                kode_mk=self.ent_kode.get(),
-                nama_mk=self.ent_nama.get(),
-                sks=self.ent_sks.get(),
-                semester=self.ent_semester.get()
-            )
-            self._aksi_reset()
+            self.controller.simpan_mata_kuliah(self.ent_kode.get(), self.ent_nama.get(),
+                                                self.ent_sks.get(), self.ent_semester.get())
+            self._reset()
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
-    def _aksi_update(self):
+    def _update(self):
         if not self.__editing_kode:
-            messagebox.showwarning("Peringatan", "Pilih data di tabel terlebih dahulu!")
-            return
+            messagebox.showwarning("Peringatan", "Pilih data dulu!"); return
         try:
-            self.controller.perbarui_mata_kuliah(
-                kode_lama=self.__editing_kode,
-                kode_mk=self.ent_kode.get(),
-                nama_mk=self.ent_nama.get(),
-                sks=self.ent_sks.get(),
-                semester=self.ent_semester.get()
-            )
-            self._aksi_reset()
+            self.controller.perbarui_mata_kuliah(self.__editing_kode, self.ent_kode.get(),
+                                                  self.ent_nama.get(), self.ent_sks.get(),
+                                                  self.ent_semester.get())
+            self._reset()
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
-    def _aksi_hapus(self):
+    def _hapus(self):
         sel = self.tree.selection()
-        if not sel:
-            messagebox.showwarning("Peringatan", "Pilih data yang akan dihapus!")
-            return
+        if not sel: return
         kode = self.tree.item(sel[0])["values"][0]
-        if messagebox.askyesno("Konfirmasi Hapus", f"Hapus Mata Kuliah {kode}?"):
+        if messagebox.askyesno("Konfirmasi", f"Hapus MK {kode}?"):
             self.controller.hapus_mata_kuliah(kode)
 
-    def _aksi_reset(self):
-        self.ent_kode.config(state="normal")
+    def _reset(self):
         for ent in [self.ent_kode, self.ent_nama, self.ent_sks, self.ent_semester]:
             ent.delete(0, tk.END)
+        self.ent_kode.config(state="normal")
         self.__editing_kode = None
-        for sel in self.tree.selection():
-            self.tree.selection_remove(sel)
 
     def _on_select(self, event):
         sel = self.tree.selection()
-        if not sel:
-            return
+        if not sel: return
         vals = self.tree.item(sel[0])["values"]
         self.ent_kode.config(state="normal")
-        self.ent_kode.delete(0, tk.END)
-        self.ent_kode.insert(0, vals[0])
+        self.ent_kode.delete(0, tk.END); self.ent_kode.insert(0, vals[0])
         self.ent_kode.config(state="disabled")
-        self.ent_nama.delete(0, tk.END)
-        self.ent_nama.insert(0, vals[1])
-        self.ent_sks.delete(0, tk.END)
-        self.ent_sks.insert(0, vals[2])
-        self.ent_semester.delete(0, tk.END)
-        self.ent_semester.insert(0, vals[3])
+        self.ent_nama.delete(0, tk.END); self.ent_nama.insert(0, vals[1])
+        self.ent_sks.delete(0, tk.END); self.ent_sks.insert(0, vals[2])
+        self.ent_semester.delete(0, tk.END); self.ent_semester.insert(0, vals[3])
         self.__editing_kode = vals[0]
 
     def muat_data(self, data):
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-        for row in data:
-            self.tree.insert("", tk.END, values=tuple(row))
+        for row in self.tree.get_children(): self.tree.delete(row)
+        for row in data: self.tree.insert("", tk.END, values=tuple(row))
 
 
 # ============================================================
-# HALAMAN KRS (CRUD)
+# KRS (Kartu Rencana Studi)
 # ============================================================
 class KRSFrame(BaseFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        self.buat_header("📝  KRS / Transkrip Nilai", "Pengisian dan pengelolaan nilai mahasiswa")
-        self.__editing_id = None
+        self.buat_header("📝 KRS (Kartu Rencana Studi)", "Pendaftaran Mata Kuliah")
 
-        # Form container - gunakan grid yang konsisten
-        frm_form = tk.Frame(self, bg=Tema.BG_CARD, padx=20, pady=15)
-        frm_form.pack(fill=tk.X, padx=25, pady=15)
-        frm_form.grid_columnconfigure(1, weight=1)  # Kolom 1 expand
+        card = self.buat_card(self, "Form Pendaftaran")
+        tk.Label(card, text="Mahasiswa", font=Tema.FONT_SMALL,
+                 bg=Tema.BG_CARD, width=14, anchor="w").grid(row=1, column=0,
+                 padx=(0, 10), pady=6, sticky="w")
+        self.cbo_nim = ttk.Combobox(card, state="readonly")
+        self.cbo_nim.grid(row=1, column=1, padx=5, pady=6, sticky="ew")
 
-        # Judul form
-        tk.Label(frm_form, text="Form Input KRS", font=("Segoe UI", 11, "bold"),
-                 bg=Tema.BG_CARD, fg=Tema.ACCENT).grid(row=0, column=0, 
-                                                        columnspan=2, 
-                                                        sticky="w", 
-                                                        pady=(0, 10))
-        ttk.Separator(frm_form, orient="horizontal").grid(row=1, column=0, 
-                                                           columnspan=2, 
-                                                           sticky="ew", 
-                                                           pady=(0, 10))
+        tk.Label(card, text="Mata Kuliah", font=Tema.FONT_SMALL,
+                 bg=Tema.BG_CARD, width=14, anchor="w").grid(row=2, column=0,
+                 padx=(0, 10), pady=6, sticky="w")
+        self.cbo_mk = ttk.Combobox(card, state="readonly")
+        self.cbo_mk.grid(row=2, column=1, padx=5, pady=6, sticky="ew")
 
-        # NIM Combobox
-        tk.Label(frm_form, text="Mahasiswa", font=Tema.FONT_SMALL,
-                 bg=Tema.BG_CARD, fg=Tema.TEXT_DARK, width=14, anchor="w"
-                 ).grid(row=2, column=0, padx=(0, 10), pady=6, sticky="w")
-        self.cbo_nim = ttk.Combobox(frm_form, state="readonly", font=Tema.FONT_SMALL)
-        self.cbo_nim.grid(row=2, column=1, padx=5, pady=6, sticky="ew")
-
-        # MK Combobox
-        tk.Label(frm_form, text="Mata Kuliah", font=Tema.FONT_SMALL,
-                 bg=Tema.BG_CARD, fg=Tema.TEXT_DARK, width=14, anchor="w"
-                 ).grid(row=3, column=0, padx=(0, 10), pady=6, sticky="w")
-        self.cbo_mk = ttk.Combobox(frm_form, state="readonly", font=Tema.FONT_SMALL)
-        self.cbo_mk.grid(row=3, column=1, padx=5, pady=6, sticky="ew")
-
-        # Nilai
-        tk.Label(frm_form, text="Nilai (0-100)", font=Tema.FONT_SMALL,
-                 bg=Tema.BG_CARD, fg=Tema.TEXT_DARK, width=14, anchor="w"
-                 ).grid(row=4, column=0, padx=(0, 10), pady=6, sticky="w")
-        self.ent_nilai = tk.Entry(frm_form, font=Tema.FONT_BODY, width=32,
-                                   relief="solid", bd=1, highlightthickness=2,
-                                   highlightcolor=Tema.INFO, highlightbackground=Tema.BORDER)
-        self.ent_nilai.grid(row=4, column=1, padx=5, pady=6, sticky="ew")
-
-        # Tahun Ajaran
-        tk.Label(frm_form, text="Tahun Ajaran", font=Tema.FONT_SMALL,
-                 bg=Tema.BG_CARD, fg=Tema.TEXT_DARK, width=14, anchor="w"
-                 ).grid(row=5, column=0, padx=(0, 10), pady=6, sticky="w")
-        self.ent_ta = tk.Entry(frm_form, font=Tema.FONT_BODY, width=32,
-                                relief="solid", bd=1, highlightthickness=2,
-                                highlightcolor=Tema.INFO, highlightbackground=Tema.BORDER)
+        tk.Label(card, text="Tahun Ajaran", font=Tema.FONT_SMALL,
+                 bg=Tema.BG_CARD, width=14, anchor="w").grid(row=3, column=0,
+                 padx=(0, 10), pady=6, sticky="w")
+        self.ent_ta = tk.Entry(card, relief="solid", bd=1)
         self.ent_ta.insert(0, "2025/2026")
-        self.ent_ta.grid(row=5, column=1, padx=5, pady=6, sticky="ew")
+        self.ent_ta.grid(row=3, column=1, padx=5, pady=6, sticky="ew")
 
-        # Tombol
-        frm_btn = tk.Frame(frm_form, bg=Tema.BG_CARD)
-        frm_btn.grid(row=6, column=0, columnspan=2, pady=(15, 0))
-        self.buat_tombol(frm_btn, "💾  Simpan", Tema.SUCCESS, self._aksi_simpan)
-        self.buat_tombol(frm_btn, "✏️  Update", Tema.INFO, self._aksi_update)
-        self.buat_tombol(frm_btn, "🗑️  Hapus", Tema.DANGER, self._aksi_hapus)
-        self.buat_tombol(frm_btn, "🔄  Reset", Tema.TEXT_MUTED, self._aksi_reset)
-
-        # Tabel
+        frm_btn = tk.Frame(card, bg=Tema.BG_CARD)
+        frm_btn.grid(row=4, column=0, columnspan=2, pady=(15, 0))
+        self.buat_tombol(frm_btn, "💾 Daftarkan", Tema.SUCCESS, self._simpan)
+        self.buat_tombol(frm_btn, "🗑️ Batalkan", Tema.DANGER, self._hapus)
+        self.buat_tombol(frm_btn, "🔄 Reset", Tema.TEXT_MUTED, self._reset)
         self._buat_tabel()
 
     def _buat_tabel(self):
-        frm_tree = tk.Frame(self, bg=Tema.BG_MAIN)
-        frm_tree.pack(fill=tk.BOTH, expand=True, padx=25, pady=(10, 15))
-
-        self.tree = ttk.Treeview(frm_tree,
-                                  columns=("id", "nim", "nama", "kode_mk", "nama_mk", "nilai", "ta"),
-                                  show="headings", height=7)
-        cols = [("id", 35, "center"), ("nim", 90, "w"), ("nama", 140, "w"),
-                ("kode_mk", 75, "w"), ("nama_mk", 170, "w"), ("nilai", 55, "center"), ("ta", 95, "center")]
-        for col, w, anc in cols:
+        frm = tk.Frame(self, bg=Tema.BG_MAIN)
+        frm.pack(fill=tk.BOTH, expand=True, padx=25, pady=10)
+        self.tree = ttk.Treeview(frm, columns=("id", "nim", "nama", "kode_mk", "nama_mk", "sks", "ta"),
+                                  show="headings", height=8)
+        for col, w in [("id", 30), ("nim", 80), ("nama", 120), ("kode_mk", 70),
+                        ("nama_mk", 150), ("sks", 50), ("ta", 80)]:
             self.tree.heading(col, text=col.upper())
-            self.tree.column(col, width=w, anchor=anc)
+            self.tree.column(col, width=w)
+        self.tree.pack(fill=tk.BOTH, expand=True)
 
-        scrollbar = ttk.Scrollbar(frm_tree, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar.set)
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.tree.bind("<<TreeviewSelect>>", self._on_select)
+    def isi_combobox(self, nim, mk):
+        self.cbo_nim["values"] = nim
+        self.cbo_mk["values"] = mk
 
-    def isi_combobox(self, daftar_nim, daftar_mk):
-        self.cbo_nim["values"] = daftar_nim
-        self.cbo_mk["values"] = daftar_mk
-
-    def _aksi_simpan(self):
+    def _simpan(self):
         try:
-            nim_val = self.cbo_nim.get().split(" - ")[0] if self.cbo_nim.get() else ""
-            mk_val = self.cbo_mk.get().split(" - ")[0] if self.cbo_mk.get() else ""
-            self.controller.simpan_krs(
-                nim=nim_val, kode_mk=mk_val,
-                nilai=self.ent_nilai.get(), tahun_ajaran=self.ent_ta.get()
-            )
-            self._aksi_reset()
+            n = self.cbo_nim.get().split(" - ")[0] if self.cbo_nim.get() else ""
+            m = self.cbo_mk.get().split(" - ")[0] if self.cbo_mk.get() else ""
+            self.controller.daftar_krs(n, m, self.ent_ta.get())
+            self._reset()
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
-    def _aksi_update(self):
-        if not self.__editing_id:
-            messagebox.showwarning("Peringatan", "Pilih data di tabel terlebih dahulu!")
-            return
-        try:
-            nim_val = self.cbo_nim.get().split(" - ")[0] if self.cbo_nim.get() else ""
-            mk_val = self.cbo_mk.get().split(" - ")[0] if self.cbo_mk.get() else ""
-            self.controller.perbarui_krs(
-                id_krs=self.__editing_id, nim=nim_val, kode_mk=mk_val,
-                nilai=self.ent_nilai.get(), tahun_ajaran=self.ent_ta.get()
-            )
-            self._aksi_reset()
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-
-    def _aksi_hapus(self):
+    def _hapus(self):
         sel = self.tree.selection()
-        if not sel:
-            messagebox.showwarning("Peringatan", "Pilih data yang akan dihapus!")
-            return
+        if not sel: return
         id_krs = self.tree.item(sel[0])["values"][0]
-        if messagebox.askyesno("Konfirmasi Hapus", "Hapus entri KRS ini?"):
+        if messagebox.askyesno("Konfirmasi", "Batalkan pendaftaran ini?"):
             self.controller.hapus_krs(id_krs)
 
-    def _aksi_reset(self):
-        self.cbo_nim.set("")
-        self.cbo_mk.set("")
-        self.ent_nilai.delete(0, tk.END)
-        self.ent_ta.delete(0, tk.END)
-        self.ent_ta.insert(0, "2025/2026")
-        self.__editing_id = None
-        for sel in self.tree.selection():
-            self.tree.selection_remove(sel)
+    def _reset(self):
+        self.cbo_nim.set(""); self.cbo_mk.set("")
+        self.ent_ta.delete(0, tk.END); self.ent_ta.insert(0, "2025/2026")
+
+    def muat_data(self, data):
+        for row in self.tree.get_children(): self.tree.delete(row)
+        for row in data: self.tree.insert("", tk.END, values=tuple(row))
+
+
+# ============================================================
+# KHS (Kartu Hasil Studi)
+# ============================================================
+class KHSFrame(BaseFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
+        self.buat_header("🎓 KHS (Kartu Hasil Studi)", "Lihat Nilai & Hitung IPK")
+
+        card_filter = self.buat_card(self, "Filter Data")
+        tk.Label(card_filter, text="Mahasiswa", font=Tema.FONT_SMALL,
+                 bg=Tema.BG_CARD, width=14, anchor="w").grid(row=1, column=0,
+                 padx=(0, 10), pady=6, sticky="w")
+        self.cbo_nim = ttk.Combobox(card_filter, state="readonly")
+        self.cbo_nim.grid(row=1, column=1, padx=5, pady=6, sticky="ew")
+
+        tk.Label(card_filter, text="Tahun Ajaran", font=Tema.FONT_SMALL,
+                 bg=Tema.BG_CARD, width=14, anchor="w").grid(row=2, column=0,
+                 padx=(0, 10), pady=6, sticky="w")
+        self.cbo_ta = ttk.Combobox(card_filter, state="readonly")
+        self.cbo_ta.grid(row=2, column=1, padx=5, pady=6, sticky="ew")
+
+        frm_btn = tk.Frame(card_filter, bg=Tema.BG_CARD)
+        frm_btn.grid(row=3, column=0, columnspan=2, pady=(15, 0))
+        self.buat_tombol(frm_btn, "🔍 Tampilkan KHS", Tema.ACCENT, self._tampilkan)
+
+        card_nilai = self.buat_card(self, "Input / Update Nilai")
+        tk.Label(card_nilai, text="ID KRS (Pilih di tabel)", font=Tema.FONT_SMALL,
+                 bg=Tema.BG_CARD, width=14, anchor="w").grid(row=1, column=0,
+                 padx=(0, 10), pady=6, sticky="w")
+        self.ent_id = tk.Entry(card_nilai, relief="solid", bd=1, state="readonly")
+        self.ent_id.grid(row=1, column=1, padx=5, pady=6, sticky="ew")
+
+        tk.Label(card_nilai, text="Nilai (0-100)", font=Tema.FONT_SMALL,
+                 bg=Tema.BG_CARD, width=14, anchor="w").grid(row=2, column=0,
+                 padx=(0, 10), pady=6, sticky="w")
+        self.ent_nilai = tk.Entry(card_nilai, relief="solid", bd=1)
+        self.ent_nilai.grid(row=2, column=1, padx=5, pady=6, sticky="ew")
+
+        frm_btn2 = tk.Frame(card_nilai, bg=Tema.BG_CARD)
+        frm_btn2.grid(row=3, column=0, columnspan=2, pady=(15, 0))
+        self.buat_tombol(frm_btn2, "💾 Simpan Nilai", Tema.SUCCESS, self._simpan_nilai)
+
+        self._buat_tabel()
+
+        self.frm_summary = tk.Frame(self, bg=Tema.BG_CARD, padx=20, pady=15)
+        self.frm_summary.pack(fill=tk.X, padx=25, pady=(0, 15))
+        self.lbl_ipk = tk.Label(self.frm_summary,
+                                text="Total SKS: 0 | IP Semester: 0.00",
+                                font=("Segoe UI", 14, "bold"),
+                                bg=Tema.BG_CARD, fg=Tema.ACCENT)
+        self.lbl_ipk.pack(anchor="w")
+
+    def _buat_tabel(self):
+        frm = tk.Frame(self, bg=Tema.BG_MAIN)
+        frm.pack(fill=tk.BOTH, expand=True, padx=25, pady=10)
+        self.tree = ttk.Treeview(frm, columns=("id", "kode_mk", "nama_mk", "sks",
+                                                "nilai", "huruf", "bobot"),
+                                  show="headings", height=6)
+        for col, w in [("id", 30), ("kode_mk", 70), ("nama_mk", 200), ("sks", 50),
+                        ("nilai", 60), ("huruf", 50), ("bobot", 60)]:
+            self.tree.heading(col, text=col.upper())
+            self.tree.column(col, width=w)
+        self.tree.pack(fill=tk.BOTH, expand=True)
+        self.tree.bind("<<TreeviewSelect>>", self._on_select)
+
+    def isi_combobox(self, nim, ta):
+        self.cbo_nim["values"] = nim
+        self.cbo_ta["values"] = ta
+
+    def _tampilkan(self):
+        nim_val = self.cbo_nim.get().split(" - ")[0] if self.cbo_nim.get() else ""
+        ta_val = self.cbo_ta.get() if self.cbo_ta.get() else None
+        if not nim_val:
+            messagebox.showwarning("Peringatan", "Pilih mahasiswa!"); return
+        self.controller.tampilkan_khs(nim_val, ta_val)
+
+    def _simpan_nilai(self):
+        id_krs = self.ent_id.get()
+        nilai = self.ent_nilai.get()
+        if not id_krs:
+            messagebox.showwarning("Peringatan", "Pilih mata kuliah di tabel!"); return
+        try:
+            self.controller.update_nilai_krs(int(id_krs), nilai)
+            self._tampilkan()
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
     def _on_select(self, event):
         sel = self.tree.selection()
-        if not sel:
-            return
+        if not sel: return
         vals = self.tree.item(sel[0])["values"]
-        self.__editing_id = vals[0]
-        self.cbo_nim.set(f"{vals[1]} - {vals[2]}")
-        self.cbo_mk.set(f"{vals[3]} - {vals[4]}")
+        self.ent_id.config(state="normal")
+        self.ent_id.delete(0, tk.END); self.ent_id.insert(0, vals[0])
+        self.ent_id.config(state="readonly")
         self.ent_nilai.delete(0, tk.END)
-        self.ent_nilai.insert(0, vals[5])
-        self.ent_ta.delete(0, tk.END)
-        self.ent_ta.insert(0, vals[6])
+        if vals[4] != "-":
+            self.ent_nilai.insert(0, vals[4])
 
-    def muat_data(self, data):
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-        for row in data:
-            self.tree.insert("", tk.END, values=tuple(row))
+    def muat_data_khs(self, data_khs, ipk, total_sks):
+        for row in self.tree.get_children(): self.tree.delete(row)
+        for row in data_khs:
+            nilai_tampil = row['nilai'] if row['nilai'] is not None else "-"
+            self.tree.insert("", tk.END, values=(
+                row['id'], row['kode_mk'], row['nama_mk'], row['sks'],
+                nilai_tampil, row['nilai_huruf'], row['bobot']
+            ))
+        self.lbl_ipk.config(text=f"Total SKS: {total_sks}  |  IP Semester: {ipk:.2f}")
